@@ -168,6 +168,7 @@ function startSync() {
 function stopSync() { clearInterval(syncTimer); syncTimer = null; }
 
 let running = null;
+let netRetries = 0;
 export function syncNow() {
   if (!cloud.currentUser()) return Promise.resolve();
   if (running) return running;
@@ -197,11 +198,19 @@ export function syncNow() {
         if (!db.lastPull || row.server_ts > db.lastPull) db.lastPull = row.server_ts;
       }
       persist();
-      sync.status = 'ok'; sync.message = ''; sync.at = new Date();
+      sync.status = 'ok'; sync.message = ''; sync.at = new Date(); netRetries = 0;
       if (changed) emit('remote');
     } catch (e) {
-      sync.status = navigator.onLine ? 'error' : 'offline';
-      sync.message = navigator.onLine ? e.message : 'Нет интернета — данные сохранены на устройстве и уйдут в облако позже';
+      // Сетевой сбой (iPhone при открытии приложения ещё не поднял интернет): тихо повторяем, ошибку не показываем.
+      const netFail = e instanceof TypeError;
+      if (netFail && netRetries < 3) {
+        netRetries += 1;
+        sync.status = 'syncing';
+        setTimeout(() => syncNow(), 3000);
+      } else {
+        sync.status = netFail || !navigator.onLine ? 'offline' : 'error';
+        sync.message = sync.status === 'offline' ? 'Нет связи с облаком — данные сохранены на устройстве и уйдут позже' : e.message;
+      }
     } finally {
       running = null;
       emit('sync');
