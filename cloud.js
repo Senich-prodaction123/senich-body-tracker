@@ -90,7 +90,9 @@ async function rest(path, opts = {}, retry = true) {
     const t = await r.text();
     throw new Error(`Облако: ${r.status} ${t.slice(0, 160)}`);
   }
-  return r.status === 204 || r.status === 201 ? null : r.json();
+  // Обновление существующей записи отвечает 200 с пустым телом — это успех, а не ошибка.
+  const text = await r.text();
+  return text ? JSON.parse(text) : null;
 }
 
 // Загрузить изменения после момента since (ISO)
