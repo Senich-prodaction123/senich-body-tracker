@@ -9,7 +9,7 @@ export const HABITS = [
   { id: 'schedule', name: 'Соблюдал режим питания' },
   { id: 'noOvereat', name: 'Не переедал вечером' },
   { id: 'activity', name: 'Тренировка или активность' },
-  { id: 'sleep', name: 'Соблюдал режим сна' },
+  { id: 'sleep', name: 'Спал 7 часов и больше' },
   { id: 'noSkip', name: 'Не пропускал основные приёмы пищи' },
 ];
 

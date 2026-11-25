@@ -114,6 +114,13 @@ export const FOODS = {
     pack: { size: 1, label: 'шт' }, noCount: true },
   spices: { name: 'Соль, чёрный перец, зира (для плова)', cat: 'other', kcal: 0, p: 0, unit: 'g', store: 'long',
     pack: { size: 1, label: '' }, noCount: true },
+  // Не входят в меню — для записи в «Дополнительно съедено». Бутылка 0,5 л = 500 мл.
+  beerLight: { name: 'Пиво светлое (бутылка 0,5 л = 500 мл)', cat: 'other', kcal: 43, p: 0.5, unit: 'ml', store: 'long',
+    pack: { size: 500, label: 'бутылка 0,5 л' } },
+  beerDark: { name: 'Пиво тёмное (бутылка 0,5 л = 500 мл)', cat: 'other', kcal: 48, p: 0.3, unit: 'ml', store: 'long',
+    pack: { size: 500, label: 'бутылка 0,5 л' } },
+  beerZero: { name: 'Пиво безалкогольное (бутылка 0,5 л = 500 мл)', cat: 'other', kcal: 26, p: 0.2, unit: 'ml', store: 'long',
+    pack: { size: 500, label: 'бутылка 0,5 л' } },
 };
 
 // Сложные блюда — рецепт на одну порцию.
