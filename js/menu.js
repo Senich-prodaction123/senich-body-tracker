@@ -33,7 +33,7 @@ export const BASE_MENU = {
   },
   3: {
     b: { name: 'Омлет, хлеб, помидоры', items: [{ r: 'omelet', q: 1 }, { f: 'bread', q: 60 }, { f: 'tomato', q: 150 }] },
-    l: { name: 'Индейка с картофелем и салатом', items: [{ f: 'turkey', q: 180, form: M }, { f: 'potato', q: 250, form: C }, { r: 'salad', q: 200 }, { f: 'oil', q: 10 }] },
+    l: { name: 'Сёмга с картофелем и салатом', items: [{ f: 'salmon', q: 150, form: M }, { f: 'potato', q: 250, form: C }, { r: 'salad', q: 200 }, { f: 'oil', q: 5 }] },
     s: { name: 'Творог с ягодами и мёдом', items: [{ f: 'curd', q: 200 }, { f: 'berries', q: 100 }, { f: 'honey', q: 10 }] },
     d: { name: 'Говядина с гречкой и овощами', items: [{ f: 'beef', q: 160, form: M }, { f: 'buckwheat', q: 200, form: C }, { f: 'vegmix', q: 200, form: C }] },
   },
@@ -53,7 +53,7 @@ export const BASE_MENU = {
     b: { name: 'Яйца, хлеб, сыр, овощи', items: [{ f: 'egg', q: 3 }, { f: 'bread', q: 70 }, { f: 'cheese', q: 25 }, { r: 'vegfresh', q: 150 }] },
     l: { name: 'Домашний плов с говядиной', items: [{ r: 'plov', q: 300 }, { r: 'salad', q: 150 }] },
     s: { name: 'Творог, йогурт, ягоды', items: [{ f: 'curd', q: 150 }, { f: 'yogurt', q: 100 }, { f: 'berries', q: 100 }] },
-    d: { name: 'Индейка с картофелем и салатом', items: [{ f: 'turkey', q: 180, form: M }, { f: 'potato', q: 200, form: C }, { r: 'salad', q: 200 }] },
+    d: { name: 'Кета с картофелем и салатом', items: [{ f: 'keta', q: 180, form: M }, { f: 'potato', q: 200, form: C }, { r: 'salad', q: 200 }] },
   },
   7: {
     b: { name: 'Овсянка на молоке, яйца, ягоды', items: [{ f: 'oats', q: 60, form: R }, { f: 'milk', q: 200 }, { f: 'egg', q: 2 }, { f: 'berries', q: 100 }] },
