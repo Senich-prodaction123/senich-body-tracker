@@ -149,6 +149,8 @@ A.profileSave = (f) => {
   const first = !prev.confirmed;
   store.put('profile', 'main', p);
   if (first && !M.day(p.startDate).weight) M.saveDay(p.startDate, { weight: p.startWeight });
+  // Новый человек: анкета «Подтвердить и начать» сразу запускает челлендж с выбранной даты.
+  if (first && !store.get('challenge', 'main')) store.put('challenge', 'main', { status: 'active', pauses: [] });
   toast(first ? 'Готово! Норма рассчитана' : 'Сохранено');
   if (first) location.hash = '#home';
 };

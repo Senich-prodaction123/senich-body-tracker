@@ -1,7 +1,7 @@
 import * as M from '../model.js';
 import * as c from '../calc.js';
 import * as store from '../store.js';
-import { A, esc, n0, n1, signed, bar, ring, lineChart, barChart, fmtDate, fmtShort, toast } from '../ui.js';
+import { A, esc, n0, n1, signed, bar, ring, lineChart, barChart, fmtDate, fmtShort, toast, confirmBox } from '../ui.js';
 
 export function todayBlock(date) {
   const t = M.T();
@@ -66,7 +66,8 @@ export function render() {
   const ws = M.weekStats();
   const waist = M.firstLast('waist');
   const allW = store.all('workouts').filter(M.isTraining);
-  const dates = c.range(M.startDate(), plen);
+  const st = M.challengeStatus();
+  const dates = M.programDates();
   const toTarget = start - t.targetWeight;
   const done = start - cur;
   const pctW = toTarget > 0 ? Math.max(0, Math.min(100, (done / toTarget) * 100)) : 0;
@@ -88,9 +89,10 @@ export function render() {
   return `
   <header class="page-h">
     <div><p class="eyebrow">${fmtDate(td)} · ${p.name ? esc(p.name) : 'SENICH BODY TRACKER'}</p>
-    <h1>${pd >= 1 ? `День ${pd} <span class="muted">из ${plen}</span>` : `Старт ${fmtDate(M.startDate())}`}</h1></div>
-    <div class="prog"><span>${Math.round((Math.max(0, pd) / plen) * 100)}%</span>${bar(Math.max(0, pd), plen)}</div>
+    <h1>${st === 'idle' ? 'Челлендж не начат' : st === 'paused' ? `Пауза <span class="muted">· пройдено ${pd} из ${plen}</span>` : pd >= 1 ? `День ${pd} <span class="muted">из ${plen}</span>` : `Старт ${fmtDate(M.startDate())}`}</h1></div>
+    ${st === 'idle' ? '' : `<div class="prog"><span>${Math.round((Math.max(0, pd) / plen) * 100)}%</span>${bar(Math.max(0, pd), plen)}</div>`}
   </header>
+  ${challengeCard(st, pd, plen)}
 
   <section class="hero card">
     <div class="hero-main">
@@ -125,6 +127,31 @@ export function render() {
     <section class="card"><div class="card-h"><h3>Тренировки по неделям</h3></div>${barChart(wkPts, { unit: 'шт' })}</section>
   </div>`;
 }
+
+function challengeCard(st, pd, plen) {
+  if (st === 'idle') {
+    return `<section class="card chal">
+      <div><h3>Челлендж ${plen} дней</h3><p class="muted small">Питание по плану, вес, замеры и тренировки. Счёт дней пойдёт с сегодняшнего дня. Пока челлендж не начат, дневник работает как обычно.</p></div>
+      <button class="btn primary" data-a="chStart">Начать челлендж</button></section>`;
+  }
+  if (st === 'paused') {
+    return `<section class="card chal">
+      <div><h3>Челлендж на паузе</h3><p class="muted small">Дни паузы не считаются. После «Продолжить» счёт пойдёт с дня ${pd + 1}.</p></div>
+      <div class="row gap"><button class="btn primary" data-a="chResume">Продолжить</button><button class="btn ghost danger-t" data-a="chFinish">Завершить</button></div></section>`;
+  }
+  return `<section class="card chal">
+    <div><p class="muted small">${pd >= plen ? 'Все дни пройдены. Завершите челлендж — итог сохранится в «Моём прогрессе».' : 'Выпали на пару дней (праздник, болезнь, поездка)? Поставьте паузу — эти дни не испортят статистику.'}</p></div>
+    <div class="row gap"><button class="btn ghost" data-a="chPause">Пауза</button><button class="btn ghost danger-t" data-a="chFinish">Завершить</button></div></section>`;
+}
+
+A.chStart = () => { M.startChallenge(); toast('Челлендж начат. День 1!'); };
+A.chPause = () => { M.pauseChallenge(); toast('Пауза. Дни не считаются'); };
+A.chResume = () => { M.resumeChallenge(); toast('Продолжаем!'); };
+A.chFinish = async () => {
+  if (!(await confirmBox('Завершить челлендж? Итог сохранится в «Моём прогрессе», счёт дней обнулится. Записи веса и дневника останутся.', 'Завершить', true))) return;
+  M.finishChallenge();
+  toast('Челлендж завершён. Итог сохранён');
+};
 
 A.water = (el) => {
   const d = el.dataset.d;

@@ -78,7 +78,68 @@ export function scale() {
 
 export const startDate = () => profile()?.startDate || c.today();
 export const programLength = () => Number(profile()?.programDays) || 30;
-export const programDay = (date = c.today()) => c.diffDays(startDate(), date) + 1;
+
+// ---------- челлендж: не начат / идёт / пауза ----------
+// Нет записи = «не начат». Пауза {from, to}: эти дни не считаются; открытая пауза идёт до сегодня.
+export const challenge = () => store.get('challenge', 'main') || { status: 'idle', pauses: [] };
+export const challengeStatus = () => challenge().status || 'idle';
+export const isPausedDate = (date) => (challenge().pauses || [])
+  .some((p) => date >= p.from && date <= (p.to || c.today()));
+
+// Номер дня программы: считаются только дни без паузы. Во время паузы — сколько дней уже пройдено.
+export function programDay(date = c.today()) {
+  if (challengeStatus() === 'idle') return 0;
+  const s = startDate();
+  if (date < s) return c.diffDays(s, date) + 1;
+  return c.range(s, c.diffDays(s, date) + 1).filter((d) => !isPausedDate(d)).length;
+}
+
+// Дни программы (без пауз) — ровно столько, сколько длится челлендж; будущие идут подряд.
+export function programDates() {
+  const out = [];
+  let d = startDate();
+  for (let i = 0; out.length < programLength() && i < 2000; i++, d = c.addDays(d, 1)) if (!isPausedDate(d)) out.push(d);
+  return out;
+}
+
+// Все календарные дни от старта до конца программы, включая паузы.
+export function calendarDates() {
+  const pd = programDates();
+  return c.range(startDate(), c.diffDays(startDate(), pd[pd.length - 1]) + 1);
+}
+
+export function startChallenge() {
+  const td = c.today();
+  store.put('profile', 'main', { ...profile(), startDate: td, startWeight: currentWeight() });
+  if (!day(td).weight) saveDay(td, { weight: currentWeight() });
+  store.put('challenge', 'main', { status: 'active', pauses: [] });
+}
+
+export function pauseChallenge() {
+  const ch = challenge();
+  store.put('challenge', 'main', { ...ch, status: 'paused', pauses: [...(ch.pauses || []), { from: c.today(), to: null }] });
+}
+
+export function resumeChallenge() {
+  const ch = challenge();
+  const yest = c.addDays(c.today(), -1);
+  const pauses = (ch.pauses || []).map((p) => (p.to ? p : { ...p, to: yest })).filter((p) => p.from <= p.to);
+  store.put('challenge', 'main', { ...ch, status: 'active', pauses });
+}
+
+export function finishChallenge() {
+  const td = c.today();
+  const p = profile() || {};
+  const ch = challenge();
+  store.put('challenges', `${startDate()}_${td}`, {
+    startDate: startDate(), endDate: td, days: Math.min(programDay(td), programLength()), programDays: programLength(),
+    startWeight: Number(p.startWeight), endWeight: currentWeight(),
+    pauses: (ch.pauses || []).map((x) => ({ from: x.from, to: x.to || td })),
+  });
+  store.put('challenge', 'main', { status: 'idle', pauses: [] });
+}
+
+export const challengeHistory = () => store.all('challenges').sort((a, b) => (a.endDate < b.endDate ? 1 : -1));
 
 // ---------- день ----------
 export const day = (date) => store.get('days', date) || {};

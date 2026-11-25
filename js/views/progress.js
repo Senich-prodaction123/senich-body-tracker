@@ -7,7 +7,7 @@ function report() {
   const p = M.profile();
   const plen = M.programLength();
   const start = M.startDate();
-  const dates = c.range(start, plen);
+  const dates = M.programDates();
   const upto = dates.filter((d) => d <= c.today());
   const withData = upto.filter(M.hasData);
   const wts = M.weights();
@@ -43,10 +43,18 @@ export function render() {
   const wkPts = Array.from({ length: weeks }, (_, i) => { const a = c.addDays(R.start, i * 7), b = c.addDays(a, 6); return { x: `Нед ${i + 1}`, y: R.tr.filter((w) => w.date >= a && w.date <= b).length }; });
 
   const lead = c.isoWeekday(R.start) - 1;
-  const cal = [...Array(lead).fill('<div></div>'), ...R.dates.map((d, i) => {
+  let n = 0;
+  const cal = [...Array(lead).fill('<div></div>'), ...M.calendarDates().map((d) => {
+    if (M.isPausedDate(d)) return `<a href="#day/${d}" class="cal-d st-pause ${d === c.today() ? 'today' : ''}"><span>П</span><i>${fmtShort(d)}</i></a>`;
+    n += 1;
     const st = d > c.today() ? 'future' : M.dayStatus(d);
-    return `<a href="#day/${d}" class="cal-d st-${st} ${d === c.today() ? 'today' : ''}"><span>${i + 1}</span><i>${fmtShort(d)}</i></a>`;
+    return `<a href="#day/${d}" class="cal-d st-${st} ${d === c.today() ? 'today' : ''}"><span>${n}</span><i>${fmtShort(d)}</i></a>`;
   })].join('');
+  const hist = M.challengeHistory();
+  const histCard = hist.length ? `<section class="card no-print"><div class="card-h"><h3>Мои челленджи</h3></div>
+    ${hist.map((h) => `<div class="hab-row"><span>${fmtDate(h.startDate, true)} — ${fmtDate(h.endDate, true)}</span><span class="muted">${h.days} из ${h.programDays} дн.${h.pauses?.length ? ` · пауз: ${h.pauses.length}` : ''}</span><b class="${h.endWeight < h.startWeight ? 'good' : ''}">${h.startWeight && h.endWeight ? `${n1(h.startWeight)} → ${n1(h.endWeight)} кг` : '—'}</b></div>`).join('')}</section>` : '';
+  const st = M.challengeStatus();
+  const idleNote = st === 'idle' ? `<section class="card no-print"><p class="muted">Челлендж сейчас не идёт. Начать его можно на главной — счёт дней пойдёт с того дня.</p></section>` : '';
 
   const habitRows = M.HABITS.map((h) => {
     const n = R.withData.filter((d) => M.habitOn(d, h.id)).length;
@@ -62,11 +70,12 @@ export function render() {
   <header class="page-h"><div><p class="eyebrow">Графики, календарь, отчёт</p><h1>Мой прогресс</h1></div>
     <div class="row gap no-print"><button class="btn ghost sm" data-a="exportCsv">CSV</button><button class="btn primary sm" data-a="printReport">PDF-отчёт</button></div></header>
 
-  <section class="card no-print"><div class="card-h"><h3>Календарь ${R.plen} дней</h3><span class="muted small">с ${fmtDate(R.start)}</span></div>
+  ${idleNote}${histCard}
+  ${st === 'idle' ? '' : `<section class="card no-print"><div class="card-h"><h3>Календарь ${R.plen} дней</h3><span class="muted small">с ${fmtDate(R.start)}</span></div>
     <div class="cal prog-cal"><b>Пн</b><b>Вт</b><b>Ср</b><b>Чт</b><b>Пт</b><b>Сб</b><b>Вс</b>${cal}</div>
-    <div class="legend"><span><i class="st-green"></i>по плану</span><span><i class="st-yellow"></i>частично</span><span><i class="st-grey"></i>нет данных</span></div>
-    <p class="hint">Пропущенный день — не провал. Просто продолжайте со следующего.</p>
-  </section>
+    <div class="legend"><span><i class="st-green"></i>по плану</span><span><i class="st-yellow"></i>частично</span><span><i class="st-grey"></i>нет данных</span><span><i class="st-pause"></i>пауза</span></div>
+    <p class="hint">Пропущенный день — не провал. Просто продолжайте со следующего. Выпали надолго — поставьте паузу на главной.</p>
+  </section>`}
 
   <div class="grid2 no-print">
     <section class="card"><div class="card-h"><h3>Вес</h3></div>${lineChart(wPts, { unit: 'кг', target: t.targetWeight })}</section>

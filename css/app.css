@@ -438,3 +438,10 @@ details[open] summary::before { content: '− '; }
   .chart .area { fill: rgba(61, 122, 0, 0.08); }
   .eyebrow { color: #3d7a00; }
 }
+
+/* челлендж: карточка управления и дни паузы */
+.chal { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.chal h3 { margin: 0 0 4px; }
+.chal > div:first-child { flex: 1 1 260px; }
+.prog-cal .cal-d.st-pause { background: transparent; border: 1px dashed var(--s3); color: var(--muted); }
+.legend i.st-pause { background: transparent; border: 1px dashed var(--muted); }
